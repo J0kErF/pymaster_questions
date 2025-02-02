@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>מבחן תרגול Python</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: right;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .question {
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+        }
+        .icons {
+            margin-top: 10px;
+        }
+        .icons button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 18px;
+        }
+        .hint, .solution {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+            background-color: #eef;
+        }
+        pre {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            text-align: left;
+        }
+        .drop-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f9f9f9;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .drop-area.dragover {
+            background-color: #e0e0e0;
+        }
+    </style>
+    <script>
+        function readPymasterFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const rows = e.target.result.split("%pymaster_row%").filter(row => row.trim().length > 0);
+                console.log(rows.length); // Debugging row count
+                console.log(rows); // Debugging rows content
+
+                let html = "";
+                let questionNumber = 1;  // Ensure correct numbering
+                rows.forEach((row) => {
+                    const cols = row.split("%pymaster_element%").map(col => col.trim());
+                    if (cols.length >= 5) { // Ensure the row has all required fields
+                        html += `
+                        <div class="question">
+                            <h3>שאלה ${questionNumber}</h3>
+                            <strong>${cols[0]}</strong>
+                            <pre style="direction: ltr;">${cols[1]}</pre>
+                            <div class="icons">
+                                <span class="topic">נושא: ${cols[4]}</span>
+                                <button onclick="toggleHint(${questionNumber})">🔍 רמז</button>
+                                <button onclick="toggleSolution(${questionNumber})">👁 פתרון</button>
+                            </div>
+                            <div class="hint" id="hint-${questionNumber}" style="display: none;">
+                                <strong>רמז:</strong> ${cols[2]}
+                            </div>
+                            <div class="solution" id="solution-${questionNumber}" style="display: none;">
+                                <strong>פתרון:</strong>
+                                <pre style="direction: ltr;">${cols[3]}</pre>
+                            </div>
+                        </div>
+                        `;
+                        questionNumber++; // Increment for next question
+                    }
+                });
+                document.getElementById("questions").innerHTML = html;
+            };
+            reader.readAsText(file);
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.target.classList.add('dragover');
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            event.target.classList.remove('dragover');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            event.target.classList.remove('dragover');
+            const file = event.dataTransfer.files[0];
+            if (file && file.name.endsWith('.pymaster')) {
+                readPymasterFile(file);
+            } else {
+                alert("נא לגרור קובץ .pymaster תקין בלבד.");
+            }
+        }
+
+        function openFileInput() {
+            document.getElementById('fileInput').click();
+        }
+
+        function toggleHint(id) {
+            var hint = document.getElementById('hint-' + id);
+            hint.style.display = (hint.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function toggleSolution(id) {
+            var solution = document.getElementById('solution-' + id);
+            solution.style.display = (solution.style.display === 'block') ? 'none' : 'block';
+        }
+    </script>
+</head>
+<body>
+    <center>
+    <h1>PyMaster</h1>
+    </center>
+    <h2>הוראות:</h2>
+    <p>גרור ושחרר את קובץ ה-pymaster לתיבה, או לחץ לבחירה ידנית:</p>
+    <div class="drop-area" 
+         ondragover="handleDragOver(event)" 
+         ondragleave="handleDragLeave(event)" 
+         ondrop="handleDrop(event)"
+         onclick="openFileInput()">
+        גרור ושחרר את הקובץ כאן, או לחץ לבחירה
+    </div>
+    <input id="fileInput" type="file" accept=".pymaster" onchange="readPymasterFile(this.files[0])" style="display: none;">
+    <div id="questions"></div>
+</body>
+</html>
